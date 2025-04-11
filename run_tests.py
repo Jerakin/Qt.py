@@ -39,12 +39,6 @@ if __name__ == "__main__":
     # enables tests to filter out from tests.py before
     # being split into individual processes via the
     # --with-process-isolation feature of nose.
-    with binding("PyQt4"):
-        errors += subprocess.call(argv)
-
-    if sys.version_info <= (3, 4):
-        with binding("PySide"):
-            errors += subprocess.call(argv)
 
     with binding("PyQt5"):
         errors += subprocess.call(argv)

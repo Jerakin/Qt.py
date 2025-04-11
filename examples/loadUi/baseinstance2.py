@@ -2,7 +2,7 @@ import sys
 import os
 
 # Set preferred binding, or Qt.py tests will fail which doesn't have pysideuic
-os.environ['QT_PREFERRED_BINDING'] = 'PyQt4'
+os.environ['QT_PREFERRED_BINDING'] = 'PyQt5'
 
 from Qt import QtWidgets, __binding__
 
@@ -10,11 +10,10 @@ from Qt import QtWidgets, __binding__
 def load_ui_type(uifile):
     """Pyside equivalent for the loadUiType function in PyQt.
 
-    From the PyQt4 documentation:
-        Load a Qt Designer .ui file and return a tuple of the generated form
-        class and the Qt base class. These can then be used to create any
-        number of instances of the user interface without having to parse the
-        .ui file more than once.
+    From the PyQt5 documentation:
+        This function generates and loads a .ui file at runtime,
+        and it returns a tuple containing the reference to the
+        Python class, and the base class.
 
     Note:
         Pyside lacks the "loadUiType" command, so we have to convert the ui
@@ -108,7 +107,7 @@ def load_ui_wrapper(uifile, base_instance=None):
 
 
 class MainWindow(QtWidgets.QWidget):
-    """Load .ui file example, utilizing pysideuic and/or PyQt4.uic.loadUi"""
+    """Load .ui file example, utilizing pysideuic and/or PyQt5.uic.loadUi"""
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
         self.base_instance = load_ui_wrapper('qwidget.ui', self)

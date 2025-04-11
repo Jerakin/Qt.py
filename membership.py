@@ -11,7 +11,6 @@ PREFIX = '/Qt.py'
 
 
 SKIP_MODULES = [
-    'PyQt4.uic.pyuic',  # Problematic as it is executed on import
     'PyQt5.uic.pyuic'  # Problematic as it is executed on import
 ]
 SKIP_MEMBERS = [
@@ -51,29 +50,6 @@ def compare(dicts):
     return common_members
 
 
-def copy_qtgui_to_modules():
-    """Copies the QtGui list of PySide/PyQt4 into QtWidgets"""
-
-    pyside_filepath = PREFIX + '/PySide.json'
-    pyqt4_filepath = PREFIX + '/PyQt4.json'
-    pyside = read_json(pyside_filepath)
-    pyqt4 = read_json(pyqt4_filepath)
-
-    # When Qt4 was moved to Qt5, they split QtGui into QtGui, QtWidgets, and
-    # QtPrintSupport.
-    pyside['QtWidgets'] = pyside['QtGui']
-    pyqt4['QtWidgets'] = pyqt4['QtGui']
-    pyside['QtPrintSupport'] = pyside['QtGui']
-    pyqt4['QtPrintSupport'] = pyqt4['QtGui']
-
-    write_json(pyside, pyside_filepath)
-    print('--> Copied QtGui to QtWidgets and QtPrintSupport for {0}'.format(
-        os.path.basename(pyside_filepath)))
-    write_json(pyqt4, pyqt4_filepath)
-    print('--> Copied QtGui to QtWidgets and QtPrintSupport for {0}'.format(
-        os.path.basename(pyqt4_filepath)))
-
-
 def sort_common_members():
     """Sorts the keys and members"""
 
@@ -99,12 +75,10 @@ def sort_common_members():
 def generate_common_members():
     """Generate JSON with commonly shared members"""
 
-    pyside = read_json(PREFIX + '/PySide.json')
     pyside2 = read_json(PREFIX + '/PySide2.json')
-    pyqt4 = read_json(PREFIX + '/PyQt4.json')
     pyqt5 = read_json(PREFIX + '/PyQt5.json')
 
-    dicts = [pyside, pyside2, pyqt4, pyqt5]
+    dicts = [pyside2, pyqt5]
     common_members = compare(dicts)
     write_json(common_members, PREFIX + '/common_members.json')
 
@@ -113,11 +87,6 @@ if __name__ == '__main__':
     # Parse commandline arguments
     parser = OptionParser()
     parser.add_option('--binding', dest='binding', metavar='BINDING')
-    parser.add_option(
-        '--copy-qtgui',
-        action='store_true',
-        dest='copy',
-        default=False)
     parser.add_option(
         '--generate-common-members',
         action='store_true',
@@ -130,10 +99,7 @@ if __name__ == '__main__':
         default=False)
     (options, args) = parser.parse_args()
 
-    if options.copy:
-        copy_qtgui_to_modules()
-
-    elif options.generate:
+    if options.generate:
         generate_common_members()
 
     elif options.sort:

@@ -27,7 +27,7 @@ classifiers = [
 
 DESCRIPTION=(
     "Python 2 & 3 compatibility wrapper around all Qt bindings - "
-    "PySide, PySide2, PyQt4 and PyQt5."
+    "PySide2, PyQt5, and PySide6."
 )
 ROOT_PATH = os.path.dirname(os.path.realpath(__file__))
 README_PATH = os.path.join(ROOT_PATH, "README.md")

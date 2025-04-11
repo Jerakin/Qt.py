@@ -25,8 +25,6 @@ def update_misplaced_members(members):
     members["PySide6"]["QtGui.QColor"] = "QtGui.QColorTest"
     members["PySide2"]["QtGui.QColor"] = "QtGui.QColorTest"
     members["PyQt5"]["QtGui.QColor"] = "QtGui.QColorTest"
-    members["PySide"]["QtGui.QColor"] = "QtGui.QColorTest"
-    members["PyQt4"]["QtGui.QColor"] = "QtGui.QColorTest"
 
 
 def update_compatibility_members(members):
@@ -38,7 +36,7 @@ def update_compatibility_members(members):
     """
     # Create a QtCompat.QWidget compatibility class. This example is
     # is used to provide a testable unittest
-    for binding in ("PySide6", "PySide2", "PyQt5", "PySide", "PyQt4"):
+    for binding in ("PySide6", "PySide2"):
         members[binding]["QWidget"] = {
             # Simple remapping of QWidget.windowTitle
             "windowTitleTest": "QtWidgets.QWidget.windowTitle",

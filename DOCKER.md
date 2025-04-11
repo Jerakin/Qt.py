@@ -15,12 +15,9 @@ The Docker images follow the [VFX Reference Platform specifications](http://www.
 * gcc<sup>1</sup>
 * git<sup>2</sup>
 * cmake<sup>3</sup>
-* Qt4<sup>4</sup>
 * Qt5 + Autodesk-modifications<sup>1</sup>
 * Qt5 Creator<sup>1, 5</sup>
 * SIP<sup>4</sup>
-* PyQt4<sup>4</sup>
-* PySide<sup>4</sup>
 * PyQt5<sup>1</sup>
 * PySide2<sup>1</sup>
 

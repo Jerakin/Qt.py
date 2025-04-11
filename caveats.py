@@ -102,19 +102,15 @@ def format_(blocks):
                                  "'Body must be in docstring format'\n")
 
         # Validate binding on first line
-        if not block["binding"] in ("PySide", "PySide2", "PyQt5", "PyQt4"):
+        if not block["binding"] in ("PySide2", "PyQt5"):
             block["body"].insert(0, ">>> assert False, "
                                  "'Invalid binding'\n")
 
-        if sys.version_info > (3, 4) and block["binding"] in ("PySide"):
-            # Skip caveat test if it requires PySide on Python > 3.4
-            continue
-        else:
-            function_count += 1
-            block["header"] = block["header"]
-            block["count"] = str(function_count)
-            block["body"] = "    ".join(block["body"])
-            tests.append("""\
+        function_count += 1
+        block["header"] = block["header"]
+        block["count"] = str(function_count)
+        block["body"] = "    ".join(block["body"])
+        tests.append("""\
 
 def test_{count}_{header}():
     '''Test {header}

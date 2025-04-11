@@ -393,14 +393,10 @@ def ignoreQtMessageHandler(msgs):
 def test_environment():
     """Tests require all bindings to be installed (except PySide on py3.5+)"""
 
-    if sys.version_info < (3, 5):
-        # PySide is not available for Python > 3.4
-        imp.find_module("PySide")
-    elif os.environ.get("QT_PREFERRED_BINDING") == "PySide6":
+    if os.environ.get("QT_PREFERRED_BINDING") == "PySide6":
         imp.find_module("PySide6")
     else:
         imp.find_module("PySide2")
-        imp.find_module("PyQt4")
         imp.find_module("PyQt5")
 
 
@@ -770,7 +766,7 @@ def test_vendoring():
     # Test invalid json data
     print("Testing invalid json data..")
     env = os.environ.copy()
-    env["QT_PREFERRED_BINDING_JSON"] = '{"Qt":["PyQt5","PyQt4"],}'
+    env["QT_PREFERRED_BINDING_JSON"] = '{"Qt":["PyQt5"],}'
 
     cmd = "import myproject.vendor.Qt;"
     cmd += "import Qt;"
@@ -808,14 +804,14 @@ def test_vendoring():
     cmd += "assert myproject.vendor.Qt.__binding__ == 'None', 'vendor';"
     cmd += "import Qt;"
     # Check that the "None" binding was not set for `import Qt`.
-    # This should be PyQt5 or PyQt4 depending on the test environment.
+    # This should be PyQt5 depending on the test environment.
     cmd += "assert Qt.__binding__ != 'None', 'Qt'"
 
-    # If the module name is "Qt" use PyQt5 or PyQt4, otherwise use None binding
+    # If the module name is "Qt" use PyQt5 otherwise use None binding
     env = os.environ.copy()
     env["QT_PREFERRED_BINDING_JSON"] = json.dumps(
         {
-            "Qt": ["PySide6", "PyQt5", "PyQt4"],
+            "Qt": ["PySide6", "PyQt5"],
             "default": ["None"]
         }
     )
@@ -828,7 +824,7 @@ def test_vendoring():
     ) == 0
 
     print("Testing QT_PREFERRED_BINDING_JSON and QT_PREFERRED_BINDING work..")
-    env["QT_PREFERRED_BINDING_JSON"] = '{"Qt":["PySide6","PyQt5","PyQt4"]}'
+    env["QT_PREFERRED_BINDING_JSON"] = '{"Qt":["PySide6","PyQt5"]}'
     env["QT_PREFERRED_BINDING"] = "None"
     assert subprocess.call(
         [sys.executable, "-c", cmd],
@@ -955,7 +951,7 @@ def test_i158_qtcore_direct_import():
 def test_translate_arguments():
     """Arguments of QtCompat.translate are correct
 
-    QtCompat.translate is a shim over the PySide, PyQt4 and PyQt5
+    QtCompat.translate is a shim over the PyQt5
     equivalent with an interface like the one found in PySide2.
 
     Reference: https://doc.qt.io/qt-5/qcoreapplication.html#translate
@@ -985,11 +981,9 @@ def test_binding_and_qt_version():
 def test_binding_states():
     """Tests to see if the Qt binding enum states are set properly"""
     import Qt
-    assert Qt.IsPySide == binding("PySide")
     assert Qt.IsPySide2 == binding("PySide2")
     assert Qt.IsPySide6 == binding("PySide6")
     assert Qt.IsPyQt5 == binding("PyQt5")
-    assert Qt.IsPyQt4 == binding("PyQt4")
 
 
 def test_qtcompat_base_class():
@@ -1122,14 +1116,14 @@ if sys.version_info < (3, 5):
 
             assert widget.objectName() == button.objectName()
 
-            if binding("PyQt4") or binding("PyQt5"):
+            if binding("PyQt5"):
                 # Even when we explicitly pass QWidget we will get QPushButton
                 assert type(widget) is QtWidgets.QPushButton, widget
             else:
                 assert type(widget) is QtWidgets.QWidget, widget
 
             # IMPORTANT: this differs across sip and shiboken.
-            if binding("PySide") or binding("PySide2"):
+            if binding("PySide2"):
                 assert widget != button
             else:
                 assert widget == button
@@ -1159,9 +1153,8 @@ if sys.version_info < (3, 5):
             assert widget.objectName() == button.objectName()
             assert type(widget) is QtWidgets.QPushButton, widget
 
-            if binding("PySide"):
-                assert widget != button
-            elif binding("PySide2") and _pyside2_commit_date() is None:
+
+            if binding("PySide2") and _pyside2_commit_date() is None:
                 assert widget != button
             elif binding("PySide2") and \
                     _pyside2_commit_date() <= datetime.datetime(
@@ -1207,12 +1200,12 @@ if sys.version_info < (3, 5):
 
             assert widget.objectName() == button.objectName()
 
-            if binding("PyQt4") or binding("PyQt5"):
+            if binding("PyQt5"):
                 assert type(widget) is B, widget
             else:
                 assert type(widget) is QtWidgets.QPushButton, widget
 
-            if binding("PySide") or binding("PySide2"):
+            if binding("PySide2"):
                 assert widget != button
             else:
                 assert widget == button
@@ -1262,85 +1255,12 @@ if sys.version_info < (3, 5):
             app.exit()
 
 
-if binding("PyQt4"):
-    def test_preferred_pyqt4():
-        """QT_PREFERRED_BINDING = PyQt4 properly forces the binding"""
-        import Qt
-        assert Qt.__binding__ == "PyQt4", (
-            "PyQt4 should have been picked, "
-            "instead got %s" % Qt.__binding__)
-
-    def test_sip_api_qtpy():
-        """Preferred binding PyQt4 should have sip version 2"""
-
-        __import__("Qt")  # Bypass linter warning
-        import sip
-        assert sip.getapi("QString") == 2, (
-            "PyQt4 API version should be 2, "
-            "instead is %s" % sip.getapi("QString"))
-
-    if PYTHON == 2:
-        def test_sip_api_already_set():
-            """Raise ImportError with sip was set to 1 with no hint, default"""
-            __import__("PyQt4.QtCore")  # Bypass linter warning
-            import sip
-            sip.setapi("QString", 1)
-            assert_raises(ImportError, __import__, "Qt")
-
-        # A sip API hint of any kind bypasses ImportError
-        # on account of it being merely a hint.
-        def test_sip_api_1_1():
-            """sip=1, hint=1 == OK"""
-            import sip
-            sip.setapi("QString", 1)
-            os.environ["QT_SIP_API_HINT"] = "1"
-            __import__("Qt")  # Bypass linter warning
-
-        def test_sip_api_2_1():
-            """sip=2, hint=1 == WARNING"""
-            import sip
-            sip.setapi("QString", 2)
-            os.environ["QT_SIP_API_HINT"] = "1"
-
-            with captured_output() as out:
-                __import__("Qt")  # Bypass linter warning
-                stdout, stderr = out
-                assert stderr.getvalue().startswith("Warning:")
-
-        def test_sip_api_1_2():
-            """sip=1, hint=2 == WARNING"""
-            import sip
-            sip.setapi("QString", 1)
-            os.environ["QT_SIP_API_HINT"] = "2"
-
-            with captured_output() as out:
-                __import__("Qt")  # Bypass linter warning
-                stdout, stderr = out
-                assert stderr.getvalue().startswith("Warning:")
-
-        def test_sip_api_2_2():
-            """sip=2, hint=2 == OK"""
-            import sip
-            sip.setapi("QString", 2)
-            os.environ["QT_SIP_API_HINT"] = "2"
-            __import__("Qt")  # Bypass linter warning
-
-
 if binding("PyQt5"):
     def test_preferred_pyqt5():
         """QT_PREFERRED_BINDING = PyQt5 properly forces the binding"""
         import Qt
         assert Qt.__binding__ == "PyQt5", (
             "PyQt5 should have been picked, "
-            "instead got %s" % Qt.__binding__)
-
-
-if binding("PySide"):
-    def test_preferred_pyside():
-        """QT_PREFERRED_BINDING = PySide properly forces the binding"""
-        import Qt
-        assert Qt.__binding__ == "PySide", (
-            "PySide should have been picked, "
             "instead got %s" % Qt.__binding__)
 
 
@@ -1384,17 +1304,3 @@ if binding("PySide6"):
 
         # But does not delete the original
         assert PySide6.QtCore.QStringListModel
-
-
-if binding("PyQt4") or binding("PyQt5"):
-    def test_multiple_preferred():
-        """QT_PREFERRED_BINDING = more than one binding excludes others"""
-
-        # PySide is the more desirable binding
-        os.environ["QT_PREFERRED_BINDING"] = os.pathsep.join(
-            ["PyQt4", "PyQt5"])
-
-        import Qt
-        assert Qt.__binding__ == "PyQt4", (
-            "PyQt4 should have been picked, "
-            "instead got %s" % Qt.__binding__)

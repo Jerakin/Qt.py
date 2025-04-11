@@ -109,60 +109,7 @@ def update_misplaced_members(members):
     Arguments:
         members (dict): The members considered by Qt.py
     """
-    # Standardize the the Property name
+    # Standardize the Property name
     members["PySide2"]["QtCore.Property"] = "QtCore.Property"
     members["PyQt5"]["QtCore.pyqtProperty"] = "QtCore.Property"
-    members["PySide"]["QtCore.Property"] = "QtCore.Property"
-    members["PyQt4"]["QtCore.pyqtProperty"] = "QtCore.Property"
-```
-
-#### QtSiteConfig.py: Standardizing PyQt4's QFileDialog functionality
-
-This example reproduces functionality already in Qt.py but it provides a good example of what is necessary to create your QtCompat namespaces with custom method decorators to change how the source method runs.
-
-```python
-def update_compatibility_members(members):
-    """This function is called by Qt.py to modify the modules it exposes.
-
-    Arguments:
-        members (dict): The members considered by Qt.py
-    """
-    members['PyQt4']["QFileDialog"] = {
-        "getOpenFileName": "QtWidgets.QFileDialog.getOpenFileName",
-        "getOpenFileNames": "QtWidgets.QFileDialog.getOpenFileNames",
-        "getSaveFileName": "QtWidgets.QFileDialog.getSaveFileName",
-    }
-
-def update_compatibility_decorators(binding, decorators):
-    """ This function is called by Qt.py to modify the decorators applied to
-    QtCompat namespace objects. Defining this method is optional.
-
-    Arguments:
-        binding (str): The Qt binding being wrapped by Qt.py
-        decorators (dict): Maps specific decorator methods to
-            QtCompat namespace methods. See Qt._build_compatibility_members
-            for more info.
-    """
-    if binding == 'PyQt4':
-        # QFileDialog QtCompat decorator
-        def _standardizeQFileDialog(some_function):
-            """ decorator that makes PyQt4 return conform to other bindings
-            """
-            def wrapper(*args, **kwargs):
-                ret = some_function(*args, **kwargs)
-                # PyQt4 only returns the selected filename, force it to a
-                # standard return of the selected filename, and a empty string
-                # for the selected filter
-                return (ret, '')
-            # preserve docstring and name of original method
-            wrapper.__doc__ = some_function.__doc__
-            wrapper.__name__ = some_function.__name__
-            return wrapper
-
-        decorators.setdefault("QFileDialog",{})["getOpenFileName"] = \
-            _standardizeQFileDialog
-        decorators.setdefault("QFileDialog",{})["getOpenFileNames"] = \
-            _standardizeQFileDialog
-        decorators.setdefault("QFileDialog",{})["getSaveFileName"] = \
-            _standardizeQFileDialog
 ```
